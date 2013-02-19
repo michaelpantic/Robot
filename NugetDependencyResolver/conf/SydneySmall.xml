@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SourceDefinition>
+  <Packages Level="Main">
+    <TeamProject Name="Retail" Base="C:/Program Files/_INFRA/workspace/Retail/Main">
+      <Directory>Application/MqAgent</Directory>
+      <Directory>BiersExt/Plugins</Directory>
+      <Directory>BiersLibs/Dal</Directory>
+      <Directory>BiersLibs/Ifc</Directory>
+      <Directory>BiersLibs/MessageQueue</Directory>
+      <Directory>BiersLibs/Common</Directory>
+      <Directory>DevTools/EftGui</Directory>
+    </TeamProject>
+    <TeamProject Name="Technologie" Base="C:/Program Files/_INFRA/workspace/Technologies/Main">
+      <Directory>Web/Framework.Wsb.Common</Directory>
+      <Directory>Web/Framework.Wsb.Domain</Directory>
+      <Directory>Web/Framework.Wsb.Domain.Sydney</Directory>
+      <Directory>Web/Framework.Wsb.Service.Sydney</Directory>
+      <Directory>Web/Framework.Wsb.Shared</Directory>
+    </TeamProject>
+  </Packages>
+</SourceDefinition> 
