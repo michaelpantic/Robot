@@ -18,6 +18,7 @@ namespace NugetDependencyResolver.model
         public string Version { get; set; }
         public string Target { get; set; }
         public string Path { get; set; }
+        public bool Nuget = true;
         public bool ThirdParty
         {
             get
@@ -48,6 +49,10 @@ namespace NugetDependencyResolver.model
             return other.GetHashCode() == this.GetHashCode();
 
 
+        }
+        public override string ToString()
+        {
+            return (Nuget ? "NUGET: " : "SOL: ") + Id + " " + (Nuget ? Version :String.Empty);
         }
     }
 }

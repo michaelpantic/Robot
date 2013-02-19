@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using QuickGraph;
+using QuickGraph.Graphviz;
 
 namespace NugetDependencyResolver
 {
@@ -11,8 +13,7 @@ namespace NugetDependencyResolver
     {
         public List<DependencyDto> dependencies = new List<DependencyDto>();
 
-
-        public Dictionary<int, Dependency> dependencyTree = new Dictionary<int, Dependency>();
+        public BidirectionalGraph<PackageDto, TaggedEdge<PackageDto, EdgeType>> graph = new BidirectionalGraph<PackageDto, TaggedEdge<PackageDto, EdgeType>>(false);
 
         public DependencyResolver(string[] startPaths)
         {
@@ -30,69 +31,106 @@ namespace NugetDependencyResolver
           
         }
 
-        private Dependency GetOrCreateItemInTree(string name, string version, bool nuget)
+        public enum EdgeType
         {
+            DependsOn,
+            Affects
+        }
 
-            // Get From Item
-            if (dependencyTree.ContainsKey(Dependency.CreateHashCode(name, version)))
-            {
-                return dependencyTree[Dependency.CreateHashCode(name, version)];
-            }
-            else
-            {
-                Dependency dep = new Dependency();
-                dep.Name = name;
-                dep.Version = version;
 
-                if (nuget)
+        /// <summary>
+        /// Generation 0 = only direct attacheds
+        /// Generation 1 = the first circle after the direct attacheds etc, without the inner ones!
+        /// </summary>
+        /// <param name="generation"></param>
+        /// <returns></returns>
+        public IEnumerable<PackageDto> GetPackagesToRebuild(PackageDto mainPackage, int generation)
+        {
+            List<PackageDto> packages = new List<PackageDto>();
+            List<PackageDto> tempPackages = new List<PackageDto>();
+
+            packages.Add(mainPackage);
+            for (int i = 0; i < generation+1; i++)
+            {
+                //move one generation further
+                tempPackages.Clear();
+                tempPackages.AddRange(packages);
+                packages.Clear();
+
+                foreach (PackageDto package in tempPackages)
                 {
-                    dep.ItemType = Dependency.DependencyItemType.NuGet;
-                }
-                dependencyTree.Add(dep.GetHashCode(), dep);
+                    foreach (Edge<PackageDto> subpkg in graph.InEdges(package))
+                    {
+                        packages.Add(subpkg.Source);
 
-                return dep;
+                    }
+                }
+            
             }
 
-
+            return packages;
 
         }
 
         public void BuildTree()
         {
+            graph.Clear();
+          
+
             foreach (DependencyDto dto in dependencies)
-            { 
-                Dependency from; Dependency to;
-                string fromName = dto.From;
-                string fromVersion = "";
-                bool fromNuget = false;
-                if(dto.FromPkg != null)
-                {  
-                    fromName = dto.FromPkg.Id;
-                    fromVersion = dto.FromPkg.Version;
-                    fromNuget = true;
+            {
+               /* if (dto.To.Id.Contains("log4net") || dto.To.ThirdParty)
+                {
+                    continue;
+                }*/
+
+                if (!graph.ContainsVertex(dto.FromPkg))
+                {
+                    graph.AddVertex(dto.FromPkg);
                 }
 
-                string toName = dto.To.Id;
-                string toVersion = dto.To.Version;
+                if (!graph.ContainsVertex(dto.To))
+                {
+                    graph.AddVertex(dto.To);
+                }
 
+                graph.AddEdge(new TaggedEdge<PackageDto, EdgeType>(dto.FromPkg, dto.To, EdgeType.DependsOn));
 
-                from = GetOrCreateItemInTree(fromName, fromVersion, fromNuget);
-                to = GetOrCreateItemInTree(toName, toVersion, true);
+         
 
-                from.HasReferenceTo.Add(to);
-                to.IsReferencedFrom.Add(from);
+                
+                 
                 
             }
         
         }
 
+        public void WriteTree()
+        {
 
-        public void DrawDependencies()
-        { 
+            BidirectionalGraph<PackageDto, TaggedEdge<PackageDto, EdgeType>> drawgraph =graph.Clone();
+            drawgraph.RemoveEdgeIf(x => x.Tag == EdgeType.Affects);
+            IVertexAndEdgeListGraph<PackageDto, TaggedEdge<PackageDto, EdgeType>> g = drawgraph;
             
-        
-        
+            var graphviz = new GraphvizAlgorithm<PackageDto, TaggedEdge<PackageDto, EdgeType>>(g);
+            graphviz.FormatVertex += graphviz_FormatVertex;
+            graphviz.GraphFormat.RankDirection = QuickGraph.Graphviz.Dot.GraphvizRankDirection.LR;
+            string test = graphviz.Generate();
+
+            System.IO.File.WriteAllText("test.dot", test);
+            
+
+
         }
+
+        void graphviz_FormatVertex(object sender, FormatVertexEventArgs<PackageDto> e)
+        {
+          e.VertexFormatter.Label = e.Vertex.ToString();
+        }
+
+
+
+
 
     }
 }

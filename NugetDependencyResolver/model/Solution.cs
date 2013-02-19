@@ -55,6 +55,14 @@ namespace NugetDependencyResolver.model
                         dependency.From = this.Name;
                         dependency.FromPkg = this.GetDefinedPackage();
 
+                        if (dependency.FromPkg == null)
+                        {
+                            dependency.FromPkg = new PackageDto();
+                            dependency.FromPkg.Id = this.Name;
+                            dependency.FromPkg.Version = "N/A";
+                            dependency.FromPkg.Nuget = false;
+                        }
+
                         dependencies.Add(dependency);
                     
                     }                
