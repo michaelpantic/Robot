@@ -45,6 +45,7 @@ namespace NugetDependencyResolver.model
                 dto.Version = root.GetAttribute("version");
                 dto.Target = root.GetAttribute("targetFramework");
                 dto.Path = _paPath.LocalPath;
+                
 
                 return dto;
             }

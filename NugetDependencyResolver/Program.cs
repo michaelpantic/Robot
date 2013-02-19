@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NugetDependencyResolver.model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,9 +15,21 @@ namespace NugetDependencyResolver
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            
+
+            DependencyResolver rsol = new DependencyResolver(new string[]{@"C:\Program Files\_INFRA\TFS\Retail\Main\"});
+            rsol.BuildTree();
+
+            foreach (DependencyDto dto in rsol.dependencies)
+            {
+                Console.WriteLine(dto.From + " \t " + dto.Via + " \t " + dto.To.Id);
+            
+            
+            }
+
+            
+            Console.ReadLine();
+
         }
     }
 }
